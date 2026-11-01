@@ -1,21 +1,23 @@
 import { PassThrough } from "node:stream";
-import { createReadableStreamFromReadable } from "@react-router/node";
-import { ServerRouter } from "react-router";
 import { renderToPipeableStream } from "react-dom/server";
-import type { EntryContext } from "react-router";
+import { ServerRouter, type EntryContext } from "react-router";
+import { createReadableStreamFromReadable } from "@react-router/node";
+import { isbot } from "isbot";
+import { addDocumentResponseHeaders } from "./shopify.server";
+
 export default function handleRequest(request: Request, status: number, headers: Headers, context: EntryContext) {
- return new Promise<Response>((resolve,reject)=>{
-  let didError=false;
-  const {pipe,abort}=renderToPipeableStream(<ServerRouter context={context} url={request.url}/>,{
-   onShellReady(){
-    const body=new PassThrough();
-    headers.set("Content-Type","text/html; charset=utf-8");
-    resolve(new Response(createReadableStreamFromReadable(body),{status:didError?500:status,headers}));
-    pipe(body);
-   },
-   onShellError(error){reject(error)},
-   onError(error){didError=true;console.error(error)}
+  addDocumentResponseHeaders(request, headers);
+  return new Promise<Response>((resolve, reject) => {
+    const { pipe, abort } = renderToPipeableStream(<ServerRouter context={context} url={request.url} />, {
+      [isbot(request.headers.get("user-agent") || "") ? "onAllReady" : "onShellReady"]() {
+        const body = new PassThrough();
+        headers.set("Content-Type", "text/html; charset=utf-8");
+        resolve(new Response(createReadableStreamFromReadable(body), { status, headers }));
+        pipe(body);
+      },
+      onShellError(error: unknown) { reject(error); },
+      onError(error: unknown) { status = 500; console.error(error); },
+    });
+    setTimeout(abort, 6000);
   });
-  setTimeout(abort,10000);
- });
 }
