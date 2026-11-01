@@ -50,3 +50,42 @@ jobs:
         run: npm test
       - name: Production build
         run: npm run build
+      - name: Runtime HTTP health and legal-page smoke test
+        env:
+          PORT: "3000"
+          SHOPIFY_APP_GID: "gid://shopify/App/1"
+          SHOPIFY_APP_HANDLE: "returnguard"
+          SHOPIFY_PARTNER_ORG_ID: "1"
+          SHOPIFY_PARTNER_API_ACCESS_TOKEN: "test_partner"
+          S3_ENDPOINT: "https://s3.example.com"
+          S3_BUCKET: "test-bucket"
+          S3_REGION: "auto"
+          S3_URL_STYLE: "virtual"
+          S3_ACCESS_KEY_ID: "test_access"
+          S3_SECRET_ACCESS_KEY: "test_secret"
+          RESEND_API_KEY: "test_resend"
+          PRIVACY_FROM_EMAIL: "privacy@example.com"
+          LEGAL_OPERATOR_NAME: "ReturnGuard Test Operator"
+          SUPPORT_EMAIL: "support@example.com"
+        run: |
+          npm run start > /tmp/returnguard-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          healthy=0
+          for i in $(seq 1 20); do
+            if curl --silent --fail http://127.0.0.1:3000/health > /tmp/health.json; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ] || ! grep -q '"status":"ok"' /tmp/health.json; then
+            cat /tmp/returnguard-server.log
+            exit 1
+          fi
+          curl --silent --fail http://127.0.0.1:3000/ > /tmp/home.html
+          curl --silent --fail http://127.0.0.1:3000/privacy > /tmp/privacy.html
+          curl --silent --fail http://127.0.0.1:3000/terms > /tmp/terms.html
+          grep -q 'ReturnGuard' /tmp/home.html
+          grep -q 'Privacy Policy' /tmp/privacy.html
+          grep -q 'Terms of Service' /tmp/terms.html
