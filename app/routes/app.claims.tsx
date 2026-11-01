@@ -94,12 +94,12 @@ export async function action({ request }: ActionFunctionArgs) {
     });
     return updated ? { success: "Claim updated.", error: null } : Response.json({ error: "Claim changed or transition is not allowed." }, { status: 409 });
   }
-  return Response.json({ error: "Unknown action." }, { status: 400 });
+  return Response.json({ error: "Unknown actionResult." }, { status: 400 });
 }
 
 export default function Claims() {
   const { claims } = useLoaderData<typeof loader>();
-  const action = useActionData<typeof action>();
+  const actionResult = useActionData<typeof action>();
   return <s-page heading="ReturnGuard claims">
     <s-section heading="Send a secure claim invitation">
       <s-paragraph>Look up an order GID in the Shopify admin. Each generated link expires after seven days and is redeemable once. Share it only with the order customer.</s-paragraph>
@@ -109,8 +109,8 @@ export default function Claims() {
         <input id="orderId" name="orderId" required placeholder="gid://shopify/Order/123456789" style={{minWidth:320}} />
         <button type="submit">Generate secure link</button>
       </Form>
-      {action && "link" in action && typeof action.link === "string" && <p>One-time customer link: <input readOnly aria-label="Secure customer link" value={action.link} style={{width:"90%"}} /></p>}
-      {action && "error" in action && action.error && <p role="alert">{action.error}</p>}
+      {actionResult && "link" in actionResult && typeof actionResult.link === "string" && <p>One-time customer link: <input readOnly aria-label="Secure customer link" value={actionResult.link} style={{width:"90%"}} /></p>}
+      {actionResult && "error" in actionResult && actionResult.error && <p role="alert">{actionResult.error}</p>}
     </s-section>
     <s-section heading="Claim review queue">
       <table>
