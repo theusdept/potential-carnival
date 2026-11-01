@@ -8,15 +8,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await authenticate.admin(request);
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 }
-
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
   return (
     <AppProvider apiKey={apiKey}>
-      <nav aria-label="ReturnGuard navigation">
+      <nav aria-label="ReturnGuard navigation" style={{ display: "flex", gap: 16, margin: "12px 16px" }}>
         <Link to="/app">Dashboard</Link>
         <Link to="/app/claims">Claims</Link>
-        <Link to="/app/billing">Plan</Link>
+        <Link to="/app/settings">Policy</Link>
+        <Link to="/app/billing">Plans</Link>
       </nav>
       <Outlet />
     </AppProvider>
