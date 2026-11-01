@@ -80,7 +80,7 @@ function signedGetUrl(cfg: Config, url: URL, now = new Date()) {
   url.search = canonicalQuery + "&X-Amz-Signature=" + signature;
   return url.toString();
 }
-async function perform(method: "PUT" | "DELETE", url: URL, cfg: Config, bytes = new Uint8Array(), contentType?: string) {
+async function perform(method: "PUT" | "DELETE", url: URL, cfg: Config, bytes: Uint8Array = new Uint8Array(), contentType?: string) {
   const response = await fetch(url, {
     method,
     headers: {
