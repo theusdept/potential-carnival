@@ -52,8 +52,13 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const token = params.token ?? "";
   if (!/^[a-zA-Z0-9_-]{43}$/.test(token)) return Response.json({ error: genericFailure }, { status: 410 });
   const origin = request.headers.get("origin");
-  if (origin && new URL(origin).origin !== new URL(process.env.SHOPIFY_APP_URL || "https://example.com").origin) {
-    return Response.json({ error: "Cross-origin submission blocked." }, { status: 403 });
+  try {
+    const appUrl = new URL(process.env.SHOPIFY_APP_URL || "https://example.com");
+    if (origin && new URL(origin).origin !== appUrl.origin) {
+      return Response.json({ error: "Cross-origin submission blocked." }, { status: 403 });
+    }
+  } catch {
+    return Response.json({ error: "Invalid request origin." }, { status: 403 });
   }
   const invite = await db.claimInvite.findUnique({
     where: { tokenHash: hashClaimToken(token) },
