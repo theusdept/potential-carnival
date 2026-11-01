@@ -1,0 +1,1 @@
+export default function Index(){return <main><h1>ReturnGuard</h1><p>Return and warranty claim management for Shopify merchants.</p><p>App installation and merchant billing are not yet enabled.</p></main>}
