@@ -1,7 +1,8 @@
+import { useLoaderData } from "react-router";
+export function loader() { return { company: process.env.LEGAL_OPERATOR_NAME || "ReturnGuard (operator not configured)", email: process.env.SUPPORT_EMAIL || "Support contact pending configuration" }; }
 export function meta() { return [{ title: "Privacy Policy | ReturnGuard" }]; }
 export default function Privacy() {
-  const company = import.meta.env.VITE_LEGAL_OPERATOR_NAME || "ReturnGuard (legal operator to be confirmed)";
-  const email = import.meta.env.VITE_SUPPORT_EMAIL || "Support contact pending configuration";
+  const { company, email } = useLoaderData<typeof loader>();
   return <main style={{maxWidth:800,margin:"40px auto",padding:24,fontFamily:"system-ui",lineHeight:1.6}}>
     <h1>ReturnGuard Privacy Policy</h1>
     <p>Last updated November 1, 2026. Operator: {company}. Contact: {email}.</p>
