@@ -1,12 +1,11 @@
 import { randomUUID, createHash } from "node:crypto";
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { detectPhotoType, MAX_EVIDENCE_BYTES } from "../domain/claims";
 
 export class EvidenceUnavailable extends Error {
   constructor(message = "Evidence storage is not configured") { super(message); }
 }
-function config() {
+async function config() {
+  const { S3Client } = await import("@aws-sdk/client-s3");
   const bucket = process.env.S3_BUCKET;
   const region = process.env.S3_REGION || "auto";
   const endpoint = process.env.S3_ENDPOINT;
@@ -28,9 +27,10 @@ export function validateEvidence(bytes: Uint8Array): "image/jpeg" | "image/png" 
 }
 export async function uploadEvidence(shop: string, bytes: Uint8Array) {
   const contentType = validateEvidence(bytes);
-  const { client, bucket } = config();
+  const { client, bucket } = await config();
   const prefix = createHash("sha256").update(shop).digest("hex").slice(0, 24);
   const key = `evidence/${prefix}/${randomUUID()}`;
+  const { PutObjectCommand } = await import("@aws-sdk/client-s3");
   await client.send(new PutObjectCommand({
     Bucket: bucket,
     Key: key,
@@ -43,12 +43,15 @@ export async function uploadEvidence(shop: string, bytes: Uint8Array) {
 }
 export async function signedEvidenceUrl(key: string) {
   if (!/^evidence\/[a-f0-9]{24}\/[0-9a-f-]{36}$/.test(key)) throw new EvidenceUnavailable("Invalid evidence key");
-  const { client, bucket } = config();
+  const { client, bucket } = await config();
+  const { GetObjectCommand } = await import("@aws-sdk/client-s3");
+  const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
   return getSignedUrl(client, new GetObjectCommand({
     Bucket: bucket, Key: key, ResponseContentDisposition: "attachment",
   }), { expiresIn: 60 });
 }
 export async function deleteEvidence(key: string) {
-  const { client, bucket } = config();
+  const { client, bucket } = await config();
+  const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
