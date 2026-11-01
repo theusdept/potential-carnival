@@ -142,11 +142,11 @@ export const headers: HeadersFunction = () => ({
 
 export default function ClaimPage() {
   const data = useLoaderData<typeof loader>();
-  const action = useActionData<typeof action>();
+  const actionResult = useActionData<typeof action>();
   return <main style={{maxWidth:720,margin:"40px auto",padding:24,fontFamily:"system-ui"}}>
     <h1>ReturnGuard claim request</h1>
     <p>Order: {data.orderName}</p>
-    {"success" in (action ?? {}) && action?.success ? <p role="status">Your claim has been submitted for merchant review.</p> :
+    {"success" in (actionResult ?? {}) && actionResult?.success ? <p role="status">Your claim has been submitted for merchant review.</p> :
       <Form method="post" encType="multipart/form-data">
         <p><label htmlFor="type">Claim type</label>{" "}
           <select name="type" id="type" required>
@@ -158,7 +158,7 @@ export default function ClaimPage() {
         <p><label htmlFor="photo">Optional evidence photo (JPEG/PNG/WebP, maximum 5 MB)</label><br/>
           <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" /></p>
         <button type="submit">Submit claim</button>
-        {action && "error" in action && action.error && <p role="alert">{action.error}</p>}
+        {actionResult && "error" in actionResult && actionResult.error && <p role="alert">{actionResult.error}</p>}
       </Form>}
   </main>;
 }
