@@ -158,7 +158,7 @@ export default function ClaimPage() {
         <p><label htmlFor="photo">Optional evidence photo (JPEG/PNG/WebP, maximum 5 MB)</label><br/>
           <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" /></p>
         <button type="submit">Submit claim</button>
-        {actionResult && "error" in actionResult && actionResult.error && <p role="alert">{actionResult.error}</p>}
+        {actionResult && "error" in actionResult && typeof actionResult.error === "string" && <p role="alert">{actionResult.error}</p>}
       </Form>}
   </main>;
 }
