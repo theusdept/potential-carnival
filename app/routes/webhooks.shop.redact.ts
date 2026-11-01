@@ -1,4 +1,9 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import { db } from "../db.server";
-export async function action({request}:ActionFunctionArgs){const {shop}=await authenticate.webhook(request);await db.$transaction([db.claimEvent.deleteMany({where:{claim:{shop}}}),db.claim.deleteMany({where:{shop}}),db.session.deleteMany({where:{shop}})]);return new Response(null,{status:200});}
+import { eraseShop } from "../services/privacy.server";
+
+export async function action({ request }: ActionFunctionArgs) {
+  const { shop } = await authenticate.webhook(request);
+  await eraseShop(shop);
+  return new Response(null, { status: 200 });
+}
