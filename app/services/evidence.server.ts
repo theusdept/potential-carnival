@@ -4,10 +4,10 @@ import { detectPhotoType, MAX_EVIDENCE_BYTES } from "../domain/claims";
 export class EvidenceUnavailable extends Error {
   constructor(message = "Evidence storage is unavailable") { super(message); }
 }
-type Config = { endpoint: URL; bucket: string; region: string; key: string; secret: string };
+type Config = { endpoint: URL; bucket: string; region: string; style: "path" | "virtual"; key: string; secret: string };
 
 function config(): Config {
-  const { S3_ENDPOINT, S3_BUCKET, S3_REGION, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
+  const { S3_ENDPOINT, S3_BUCKET, S3_REGION, S3_URL_STYLE, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
   if (!S3_ENDPOINT || !S3_BUCKET || !S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY) {
     throw new EvidenceUnavailable("Private evidence storage is not configured");
   }
@@ -19,7 +19,9 @@ function config(): Config {
     !/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(S3_BUCKET)) {
     throw new EvidenceUnavailable("Invalid storage endpoint or bucket");
   }
-  return { endpoint, bucket: S3_BUCKET, region: S3_REGION || "us-east-1", key: S3_ACCESS_KEY_ID, secret: S3_SECRET_ACCESS_KEY };
+  const style = S3_URL_STYLE || "virtual";
+  if (style !== "path" && style !== "virtual") throw new EvidenceUnavailable("Invalid storage URL style");
+  return { endpoint, bucket: S3_BUCKET, region: S3_REGION || "auto", style, key: S3_ACCESS_KEY_ID, secret: S3_SECRET_ACCESS_KEY };
 }
 function hashHex(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
@@ -40,7 +42,10 @@ function resourceUrl(cfg: Config, key: string): URL {
   if (!/^evidence\/[a-f0-9]{24}\/[0-9a-f-]{36}$/.test(key)) {
     throw new EvidenceUnavailable("Invalid evidence object key");
   }
-  return new URL("/" + escapeRfc3986(cfg.bucket) + "/" + key, cfg.endpoint);
+  if (cfg.style === "path") return new URL("/" + escapeRfc3986(cfg.bucket) + "/" + key, cfg.endpoint);
+  const result = new URL("/" + key, cfg.endpoint);
+  result.hostname = cfg.bucket + "." + result.hostname;
+  return result;
 }
 function requestAuthorization(cfg: Config, method: "PUT" | "DELETE", url: URL, payload: Uint8Array, now = new Date()) {
   const amzDate = stamp(now);
