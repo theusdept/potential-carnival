@@ -1,0 +1,24 @@
+name: ReturnGuard CI
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/returnguard
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          SHOPIFY_API_KEY: test
+          SHOPIFY_API_SECRET: test
+          SHOPIFY_APP_URL: https://example.com
+          DATABASE_URL: postgresql://user:pass@localhost:5432/returnguard
