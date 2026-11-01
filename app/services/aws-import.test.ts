@@ -5,6 +5,7 @@ beforeEach(() => {
   vi.stubEnv("S3_ENDPOINT", "https://s3.example.com");
   vi.stubEnv("S3_BUCKET", "test-bucket");
   vi.stubEnv("S3_REGION", "us-east-1");
+  vi.stubEnv("S3_URL_STYLE", "path");
   vi.stubEnv("S3_ACCESS_KEY_ID", "test-access-key");
   vi.stubEnv("S3_SECRET_ACCESS_KEY", "test-secret");
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 200 })));
@@ -22,6 +23,14 @@ describe("S3 Signature V4 evidence storage", () => {
     expect(headers.Authorization).toMatch(/^AWS4-HMAC-SHA256 Credential=test-access-key\//);
     expect(headers["X-Amz-Content-Sha256"]).toMatch(/^[0-9a-f]{64}$/);
     expect(headers["Content-Disposition"]).toBe("attachment");
+  });
+  it("supports new Railway virtual-hosted bucket endpoints", async () => {
+    vi.stubEnv("S3_URL_STYLE", "virtual");
+    const evidence = await uploadEvidence("demo.myshopify.com", new Uint8Array([255,216,255]));
+    const [url] = vi.mocked(fetch).mock.calls[0];
+    expect(String(url)).toContain("https://test-bucket.s3.example.com/evidence/");
+    const signed = new URL(await signedEvidenceUrl(evidence.objectKey));
+    expect(signed.hostname).toBe("test-bucket.s3.example.com");
   });
   it("generates a 60-second presigned download URL", async () => {
     const key = "evidence/" + "a".repeat(24) + "/01234567-89ab-4cde-8fab-0123456789ab";
