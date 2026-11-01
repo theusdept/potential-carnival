@@ -103,6 +103,7 @@ model Evidence {
 
 model ShopSettings {
   shop               String   @id
+  shopId             String?
   returnWindowDays   Int      @default(30)
   warrantyWindowDays Int      @default(365)
   updatedAt          DateTime @updatedAt
