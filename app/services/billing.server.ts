@@ -71,7 +71,8 @@ export async function activeSubscription(shopId: string): Promise<ActiveSubscrip
     throw new BillingUnavailable("Partner API returned an invalid response");
   }
   const value = body.data.activeSubscription ?? null;
-  cache.set(shopId, { value, expires: Date.now() + 60000 });
+  if (value) cache.set(shopId, { value, expires: Date.now() + 60000 });
+  else cache.delete(shopId);
   return value;
 }
 export async function getActivePlan(shopId: string): Promise<{ plan: Plan; cycleStart: Date } | null> {
