@@ -74,6 +74,7 @@ model ClaimEvent {
 }
 
 model ClaimInvite {
+  orderCreatedAt DateTime
   id         String    @id @default(cuid())
   shop       String
   orderId    String
