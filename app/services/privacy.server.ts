@@ -65,6 +65,31 @@ export async function exportCustomerData(shop: string, customerId: string) {
   };
 }
 
+export async function shopContactEmail(shop: string) {
+  if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(shop)) throw new Error("Invalid shop domain");
+  const session = await db.session.findFirst({ where: { shop, isOnline: false } });
+  if (!session) throw new Error("Store no longer has an offline session");
+  const response = await fetch(`https://${shop}/admin/api/2026-10/graphql.json`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Access-Token": session.accessToken,
+    },
+    body: JSON.stringify({ query: "{ shop { email } }" }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error("Could not retrieve merchant contact email");
+  const data = await response.json() as {
+    data?: { shop?: { email?: string } };
+    errors?: Array<{ message: string }>;
+  };
+  const email = data.data?.shop?.email;
+  if (data.errors?.length || !email || !z.email().safeParse(email).success) {
+    throw new Error("Merchant contact email is unavailable");
+  }
+  return email;
+}
+
 export async function deliverDataExport(email: string, exportData: unknown) {
   const token = process.env.RESEND_API_KEY;
   const from = process.env.PRIVACY_FROM_EMAIL;
