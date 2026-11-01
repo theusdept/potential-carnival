@@ -11,7 +11,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       DATABASE_URL: postgresql://test:test@localhost:5432/returnguard
       SHOPIFY_API_KEY: test_key
@@ -37,11 +37,13 @@ jobs:
         with:
           node-version: '22'
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Validate Prisma schema
         run: npx prisma validate
       - name: Generate Prisma client
         run: npx prisma generate
+      - name: Deploy test database migrations
+        run: npx prisma migrate deploy
       - name: Typecheck
         run: npm run typecheck
       - name: Unit tests

@@ -1,48 +1,132 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
+
 model Session {
-  id String @id
-  shop String
-  state String
-  isOnline Boolean @default(false)
-  scope String?
-  expires DateTime?
-  accessToken String
-  userId BigInt?
-  firstName String?
-  lastName String?
-  email String?
-  accountOwner Boolean @default(false)
-  locale String?
-  collaborator Boolean? @default(false)
-  emailVerified Boolean? @default(false)
-  refreshToken String?
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
   refreshTokenExpires DateTime?
+
+  @@index([shop])
 }
-enum ClaimType { RETURN WARRANTY DAMAGE }
-enum ClaimStatus { PENDING APPROVED REJECTED RESOLVED }
+
+enum ClaimType {
+  RETURN
+  WARRANTY
+  DAMAGE
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RESOLVED
+}
+
 model Claim {
-  id String @id @default(cuid())
-  shop String
-  orderId String
-  type ClaimType
-  reason String
-  status ClaimStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  events ClaimEvent[]
-  @@index([shop,status])
-  @@index([shop,orderId])
+  id         String      @id @default(cuid())
+  shop       String
+  orderId    String
+  orderName  String?
+  customerId String?
+  type       ClaimType
+  reason     String      @db.VarChar(2000)
+  status     ClaimStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  events     ClaimEvent[]
+  evidence   Evidence[]
+  inviteId   String?     @unique
+  invite     ClaimInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
+
+  @@index([shop, status, createdAt])
+  @@index([shop, orderId])
+  @@index([shop, customerId])
 }
+
 model ClaimEvent {
-  id String @id @default(cuid())
-  claimId String
-  claim Claim @relation(fields:[claimId],references:[id],onDelete:Cascade)
-  action String
+  id        String   @id @default(cuid())
+  claimId   String
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  action    String
   createdAt DateTime @default(now())
+
+  @@index([claimId, createdAt])
+}
+
+model ClaimInvite {
+  orderCreatedAt DateTime
+  id         String    @id @default(cuid())
+  shop       String
+  orderId    String
+  orderName  String?
+  customerId String?
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  claim      Claim?
+
+  @@index([shop, orderId])
+  @@index([expiresAt])
+}
+
+model Evidence {
+  id          String   @id @default(cuid())
+  claimId     String
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  objectKey   String   @unique
+  contentType String
+  bytes       Int
+  createdAt   DateTime @default(now())
+
+  @@index([claimId])
+}
+
+model ShopSettings {
+  shop               String   @id
+  shopId             String?
+  returnWindowDays   Int      @default(30)
+  warrantyWindowDays Int      @default(365)
+  updatedAt          DateTime @updatedAt
+}
+
+model PrivacyRequest {
+  id          String    @id @default(cuid())
+  shop        String
+  topic       String
+  customerId  String?
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+  error       String?
+
+  @@index([shop, status])
+}
+
+model ShopUsage {
+  shop        String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([shop, windowStart])
 }

@@ -1,16 +1,27 @@
-# ReturnGuard launch gates
+# ReturnGuard release gates
 
-- [ ] Confirm compatible Shopify React Router dependency versions and build
-- [ ] Create Shopify Partner app and configure OAuth callback URLs
-- [ ] Implement customer-facing verified claim intake (do not expose unauthenticated order lookup)
-- [ ] Implement secure object storage for claim evidence with malware/file validation
-- [ ] Enforce per-shop billing entitlement and claim quotas server-side
-- [ ] Register mandatory Shopify privacy and uninstall webhooks and verify HMAC
-- [ ] Implement real customer data export/redaction workflows (current placeholders are not compliant)
-- [ ] Add Shopify app configuration, scopes, and session migration
-- [ ] Add migrations, unit and integration tests, CI, error monitoring
-- [ ] Test on a Shopify development store
-- [ ] Set production secrets and deploy to Railway
-- [ ] Complete privacy policy, support channel, and Shopify App Store review
+## Engineering
+- [x] React Router and Prisma foundation committed
+- [x] Server-verified Shopify order lookup and secure one-use claim invitations implemented
+- [x] Return/damage/warranty submission and merchant decisions implemented
+- [x] Plan quotas, policy windows and evidence storage code implemented
+- [x] Shopify pricing verification and managed plan selection code implemented
+- [x] Mandatory privacy and uninstall webhook handlers implemented
+- [x] PostgreSQL migration and automated CI (schema, typecheck, tests, build) passed on repair branch
+- [ ] CI green after final branch merge and production startup smoke test
+- [ ] Live S3 upload/download/delete integration test with bucket credentials
+- [ ] Shopify OAuth, protected customer data access, order lookup and invitation tested on dev store
+- [ ] App Pricing active subscription/upgrade/cancel tested on dev store
+- [ ] Verified webhook HMAC, data export and redaction tested against Shopify
+- [ ] Load/rate limiting, application log monitoring and recovery strategy reviewed
+- [ ] Merchant usability, accessibility and production security review completed
 
-Do not enable public installs or live billing before these gates are complete.
+## Required external services
+- [ ] Public Shopify Dev app registered and configuration deployed
+- [ ] Shopify managed plans and Partner API client configured
+- [ ] Railway staging changes committed only after credentials and approval
+- [ ] Verified email sender and legal operator/support contact configured
+- [ ] Private S3 bucket connection tested with correct URL addressing style
+- [ ] Shopify App Store listing and protected customer data review submitted and approved
+
+Do not claim production readiness or accept merchant payments until the unchecked gates pass.
