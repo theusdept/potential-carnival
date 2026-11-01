@@ -1,0 +1,29 @@
+name = "ReturnGuard"
+client_id = "REPLACE_WITH_SHOPIFY_CLIENT_ID"
+application_url = "https://REPLACE_WITH_PUBLIC_DOMAIN"
+embedded = true
+
+[access_scopes]
+scopes = "read_orders"
+
+[auth]
+redirect_urls = ["https://REPLACE_WITH_PUBLIC_DOMAIN/auth/callback"]
+
+[webhooks]
+api_version = "2026-10"
+
+[[webhooks.subscriptions]]
+topics = ["app/uninstalled"]
+uri = "/webhooks/app/uninstalled"
+
+[[webhooks.subscriptions]]
+compliance_topics = ["customers/data_request"]
+uri = "/webhooks/customers/data_request"
+
+[[webhooks.subscriptions]]
+compliance_topics = ["customers/redact"]
+uri = "/webhooks/customers/redact"
+
+[[webhooks.subscriptions]]
+compliance_topics = ["shop/redact"]
+uri = "/webhooks/shop/redact"
