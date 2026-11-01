@@ -33,7 +33,7 @@ CREATE TABLE "Evidence" (
 CONSTRAINT "Evidence_pkey" PRIMARY KEY("id")
 );
 CREATE TABLE "ShopSettings" (
-"shop" TEXT NOT NULL, "returnWindowDays" INTEGER NOT NULL DEFAULT 30,
+"shop" TEXT NOT NULL, "shopId" TEXT, "returnWindowDays" INTEGER NOT NULL DEFAULT 30,
 "warrantyWindowDays" INTEGER NOT NULL DEFAULT 365, "updatedAt" TIMESTAMP(3) NOT NULL,
 CONSTRAINT "ShopSettings_pkey" PRIMARY KEY("shop")
 );
