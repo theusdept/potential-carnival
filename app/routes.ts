@@ -5,6 +5,8 @@ export default [
   route("health", "routes/health.ts"),
   route("robots.txt", "routes/robots.txt.ts"),
   route("claim/:token", "routes/claim.$token.tsx"),
+  route("privacy", "routes/privacy.tsx"),
+  route("terms", "routes/terms.tsx"),
   route("auth/login", "routes/auth.login.tsx"),
   route("auth/*", "routes/auth.$.tsx"),
   route("app", "routes/app.tsx", [
@@ -12,6 +14,7 @@ export default [
     route("claims", "routes/app.claims.tsx"),
     route("evidence/:id", "routes/app.evidence.$id.ts"),
     route("billing", "routes/app.billing.tsx"),
+    route("settings", "routes/app.settings.tsx"),
   ]),
   route("webhooks/app/uninstalled", "routes/webhooks.app.uninstalled.ts"),
   route("webhooks/customers/data_request", "routes/webhooks.customers.data_request.ts"),
